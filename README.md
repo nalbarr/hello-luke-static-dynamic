@@ -1,0 +1,2 @@
+# hello_static_dynamic
+hello_static_dynamic
