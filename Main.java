@@ -1,3 +1,7 @@
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -9,16 +13,20 @@ public class Main {
 	}
 
 	// inner class
+	/*
+	// NAA
+	// - Moved this to separate class outside of Main.java
 	static class Foo {
-		int x;
+		public int x;
 		Foo(int x) {
 			this.x = x;
 		}
 		void bar(int x) {
 			this.x = x;
-			System.out.println(String.format("x: %d", this.x));
+			System.out.println(String.format("Foo.bar(); x: %d", this.x));
 		}
 	}
+	*/
 
 	public static void explicitTypes() {
 		int i = 1;
@@ -34,6 +42,24 @@ public class Main {
 		System.out.println(String.format("i: %d, s: %s", i, s));
 	}
 
+	public static void methodInvocationReflection() {
+		Class classesLoaded = null;
+		Foo foo = null;
+		try {
+			classesLoaded = Class.forName("Foo");
+			foo = (Foo) classesLoaded.getDeclaredConstructor().newInstance();
+			// call method on reflective instance
+			foo.bar();
+		} catch (Throwable e) {
+			// Will catch:
+			// - InstantiationException
+			// - IllegalAccessException
+			// - ClassNotFoundException
+			// ...			
+			System.err.println(String.format("Caught exception: %s", e.getMessage()));
+		}
+	}
+
 	public static void dynamicTypes() {
 		try {
 			MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -44,17 +70,18 @@ public class Main {
 			mh.invokeExact();
 
 			// dynamic lookup of class getter
-			/*
-			Foo foo = new Foo(123);
-			MethodHandle mh2 = lookup.findStatic(Foo.class, "x", int.class);
-			mh2.invoke(bar, 345);
+			Foo foo = new Foo();
+			MethodHandle mh2 = lookup.findVirtual(Foo.class, "bar", 
+				MethodType.methodType(void.class));
+			mh2.invoke(foo);
 
 			// NAA
 			// - note the need to runtime cast of a dynamic type
-      			MethodHandle mh3 = lookup.findGetter(Main.Foo.class, "_x", int.class);
+      		MethodHandle mh3 = lookup.findGetter(Foo.class, "x", int.class);
 			int x = (int) mh3.invoke(foo);
-      			System.out.printf(String.format("x: %d", x));
-			*/
+			System.out.printf(String.format("x: %d", x));
+			assert x == 222;
+			  
 		} catch (Throwable e) {
 			// Will catch:
 			// - IllegalAccessException
@@ -66,6 +93,7 @@ public class Main {
 	public static void main(String args[]) {
 		explicitTypes();
 		implicitTypes();
+		methodInvocationReflection();
 		dynamicTypes();
 	}
 }

@@ -2,7 +2,7 @@ clean:
 	rm ./*.class
 
 compile: 
-	javac Main.java
+	javac -Xlint:unchecked Main.java
 
 run: compile
 	java Main
