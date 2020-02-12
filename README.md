@@ -1,2 +1,2 @@
-# hello_static_dynamic
-hello_static_dynamic
+# hello-luke-static-dynamic
+hello-luke-static-dynamic
